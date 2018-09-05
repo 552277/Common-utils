@@ -6,10 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -50,16 +47,6 @@ public class HttpClientUtil {
             connectionManager.setMaxTotal(50);// 整个连接池最大连接数
             connectionManager.setDefaultMaxPerRoute(5);// 每路由最大连接数，默认值是2
         }
-    }
-
-    /**
-     * 通过连接池获取HttpClient
-     *
-     * @return
-     */
-    private static CloseableHttpClient getHttpClient() {
-        init();
-        return HttpClients.custom().setConnectionManager(connectionManager).build();
     }
 
     /**
@@ -236,33 +223,22 @@ public class HttpClientUtil {
     }
 
     /**
-     * 下载文件
+     * 发送patch请求
      *
-     * @param url 目标地址
-     * @param filename 文件名
-     * @return file 文件
+     * @param url
+     * @param object
+     * @return 请求结果
      * @throws IOException
-     * @throws Exception
      */
-    // public static File download(String url, String filename) throws MalformedURLException, IOException {
-    // // 打开连接
-    // URLConnection con = new URL(url).openConnection();
-    // // 输入流
-    // InputStream is = con.getInputStream();
-    //
-    // File file = new File(filename);
-    // OutputStream os = new FileOutputStream(file);
-    // byte[] bs = new byte[1024];
-    // int len;
-    // // 开始读取
-    // while ((len = is.read(bs)) != -1) {
-    // os.write(bs, 0, len);
-    // }
-    // // 完毕，关闭所有链接
-    // os.close();
-    // is.close();
-    // return file;
-    // }
+    public static String sendHttpPatchRequest(String url, Object object) throws IOException{
+        HttpPatch httpPatch = new HttpPatch(url);
+        StringEntity entity = new StringEntity(new ObjectMapper().writeValueAsString(object), UTF_8);
+        entity.setContentEncoding(UTF_8);
+        entity.setContentType("application/json");
+        httpPatch.setEntity(entity);
+        return getResult(httpPatch);
+    }
+
 
     private static HttpRequestBase getHttpRequestBase(String url, Map<String, String> params,
                                                       Map<String, String> headers, HttpMethod httpMethod)
@@ -293,33 +269,6 @@ public class HttpClientUtil {
             }
         }
         return httpRequestBase;
-    }
-
-    private static List<NameValuePair> covertParams2NVPS(Map<String, String> params) {
-        List<NameValuePair> pairs = Lists.newArrayList();
-        for (Map.Entry<String, String> param : params.entrySet()) {
-            pairs.add(new BasicNameValuePair(param.getKey(), param.getValue()));
-        }
-        return pairs;
-    }
-
-    /**
-     * 返回请求结果
-     *
-     * @param request
-     * @return 请求结果
-     * @throws IOException
-     */
-    private static String getResult(HttpRequestBase request) throws IOException {
-        String result = StringUtils.EMPTY;
-        CloseableHttpClient httpClient = getHttpClient();
-        CloseableHttpResponse response = httpClient.execute(request);
-        HttpEntity entity = response.getEntity();
-        if (entity != null) {
-            result = EntityUtils.toString(entity);
-        }
-        response.close();
-        return result;
     }
 
     /**
@@ -396,5 +345,42 @@ public class HttpClientUtil {
         if (!parent.exists()) {
             parent.mkdirs();
         }
+    }
+
+    /**
+     * 通过连接池获取HttpClient
+     *
+     * @return
+     */
+    private static CloseableHttpClient getHttpClient() {
+        init();
+        return HttpClients.custom().setConnectionManager(connectionManager).build();
+    }
+
+    /**
+     * 返回请求结果
+     *
+     * @param request
+     * @return 请求结果
+     * @throws IOException
+     */
+    private static String getResult(HttpRequestBase request) throws IOException {
+        String result = StringUtils.EMPTY;
+        CloseableHttpClient httpClient = getHttpClient();
+        CloseableHttpResponse response = httpClient.execute(request);
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            result = EntityUtils.toString(entity);
+        }
+        response.close();
+        return result;
+    }
+
+    private static List<NameValuePair> covertParams2NVPS(Map<String, String> params) {
+        List<NameValuePair> pairs = Lists.newArrayList();
+        for (Map.Entry<String, String> param : params.entrySet()) {
+            pairs.add(new BasicNameValuePair(param.getKey(), param.getValue()));
+        }
+        return pairs;
     }
 }
