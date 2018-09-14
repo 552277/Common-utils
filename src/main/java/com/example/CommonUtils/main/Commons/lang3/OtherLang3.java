@@ -1,5 +1,6 @@
-package com.example.CommonUtils.main.Commons;
+package com.example.CommonUtils.main.Commons.lang3;
 
+import org.apache.commons.lang3.ArchUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -7,7 +8,6 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.Date;
-import java.util.Map;
 
 
 /**
@@ -46,6 +46,7 @@ public class OtherLang3 {
         Date date = DateUtils.addDays(new Date(), 3);
         System.out.println("日期添加3天后:" + DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss")); // 日期添加3天:2018-09-14 10:09:07
 
+        System.out.println(ArchUtils.getProcessor());
 
     }
 }
